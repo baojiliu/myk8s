@@ -12,11 +12,11 @@
 ## 前置条件
 
 - **Linux 主机**（首期面向本机开发环境）
-- **k3s** 将通过 `k3s/install.sh` 安装（脚本会禁用自带 Traefik，入口交给 Istio）
+- **k3s** 将通过 `scripts/k3s/install.sh` 安装（脚本会禁用自带 Traefik，入口交给 Istio）
 - **kubectl** 可用（安装脚本会写入 `~/.kube/config`）
 - **磁盘**：`local-path-provisioner` 数据目录为 `~/data`，请确保该路径所在分区有足够空间
 - **网络**：可拉取 k3s、Helm chart、容器镜像；可访问 GitHub（清单与应用源码）
-- **/etc/hosts**：`scripts/setup-hosts.sh` 会写入 `harbor.myk8s.local`、`argocd.myk8s.local`、`hello.myk8s.local`（指向 `127.0.0.1`）
+- **/etc/hosts**：`scripts/hosts/setup-hosts.sh` 会写入 `harbor.myk8s.local`、`argocd.myk8s.local`、`hello.myk8s.local`（指向 `127.0.0.1`）
 
 ## 快速开始
 
@@ -25,7 +25,7 @@
 ### 1. 安装 k3s
 
 ```bash
-bash k3s/install.sh
+bash scripts/k3s/install.sh
 ```
 
 配置 local-path 使用 `~/data`，并禁用 k3s 自带 Traefik。
@@ -71,7 +71,7 @@ git push -u origin HEAD   # 或 push 到 main
 ### 6. Smoke 验收
 
 ```bash
-bash scripts/smoke-check.sh
+bash scripts/smoke/smoke-check.sh
 ```
 
 脚本检查：节点 Ready、无 Traefik、Argo CD / Harbor / Workflows / PostgreSQL / ClickHouse、`harbor-admin` Secret、Istio ingress、`http://hello.myk8s.local` 可访问。全部输出 `OK` 即通过；任一项 `FAIL` 请对照输出排查对应组件。
@@ -86,18 +86,17 @@ bash scripts/smoke-check.sh
 
 - **禁止**将 GitHub Personal Access Token 嵌入 `git remote` URL（例如 `https://TOKEN@github.com/...`）。清单内 `repoURL` 一律使用不含凭据的 HTTPS 地址。
 - 若 token 曾出现在 remote URL、shell 历史或日志中，请**立即轮换**并在 GitHub 撤销旧 token。
-- Workflow 与 Harbor 使用的 token/robot 账户通过 `scripts/apply-secrets.sh` 注入集群，仅存于本机 `secrets/local` 与 Kubernetes Secret。
+- Workflow 与 Harbor 使用的 token/robot 账户通过 `scripts/secrets/apply-secrets.sh` 注入集群，仅存于本机 `secrets/local` 与 Kubernetes Secret。
 
 ## 仓库结构（概要）
 
 ```text
-k3s/           # k3s 安装与 local-path 配置
 bootstrap/     # Argo CD 首次安装脚本
 argocd/        # Root / Platform / Workloads Application 定义
 platform/      # 平台组件 Kustomize 基线与 overlay
 workloads/     # 应用 Kustomize（如 hello）
 secrets/       # 密钥模板与本机 local（gitignore）
-scripts/       # bootstrap、hosts、secrets、smoke-check
+scripts/       # bootstrap；子目录 k3s/、hosts/、secrets/、smoke/
 examples/      # 演示用应用源码指针（构建上下文）
 ```
 
@@ -108,10 +107,10 @@ examples/      # 演示用应用源码指针（构建上下文）
 bash scripts/bootstrap.sh
 
 # 仅重新应用本机密钥到集群
-bash scripts/apply-secrets.sh
+bash scripts/secrets/apply-secrets.sh
 
 # 平台健康检查
-bash scripts/smoke-check.sh
+bash scripts/smoke/smoke-check.sh
 
 # Argo CD 本地访问
 kubectl -n argocd port-forward svc/argocd-server 8080:443
@@ -129,9 +128,9 @@ kubectl -n argocd port-forward svc/argocd-server 8080:443
 
 修改后执行 `sudo systemctl reload docker`（或 restart）。
 
-k3s 安装会写入 `/etc/rancher/k3s/registries.yaml`，允许节点从 `http://harbor.myk8s.local` 拉镜像。若集群已存在，请手动复制 `k3s/registries.yaml` 后 `systemctl restart k3s`。
+k3s 安装会写入 `/etc/rancher/k3s/registries.yaml`，允许节点从 `http://harbor.myk8s.local` 拉镜像。若集群已存在，请手动复制 `scripts/k3s/registries.yaml` 后 `systemctl restart k3s`。
 
-`hello` Deployment 使用 `imagePullSecrets: harbor-pull`（由 `apply-secrets.sh` 注入）。
+`hello` Deployment 使用 `imagePullSecrets: harbor-pull`（由 `scripts/secrets/apply-secrets.sh` 注入）。
 
 ## Argo CD `targetRevision`
 
