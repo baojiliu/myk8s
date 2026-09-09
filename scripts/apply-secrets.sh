@@ -27,6 +27,7 @@ kubectl -n harbor create secret generic harbor-admin \
   --dry-run=client -o yaml | kubectl apply -f -
 
 kubectl -n postgres create secret generic postgres-app \
+  --from-literal=username="$POSTGRES_USER" \
   --from-literal=password="$POSTGRES_PASSWORD" \
   --dry-run=client -o yaml | kubectl apply -f -
 
