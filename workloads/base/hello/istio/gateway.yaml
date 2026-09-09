@@ -1,0 +1,30 @@
+apiVersion: networking.istio.io/v1
+kind: Gateway
+metadata:
+  name: hello-gw
+spec:
+  selector:
+    istio: ingressgateway
+  servers:
+    - port:
+        number: 80
+        name: http
+        protocol: HTTP
+      hosts:
+        - hello.local
+---
+apiVersion: networking.istio.io/v1
+kind: VirtualService
+metadata:
+  name: hello-vs
+spec:
+  hosts:
+    - hello.local
+  gateways:
+    - hello-gw
+  http:
+    - route:
+        - destination:
+            host: hello
+            port:
+              number: 80
