@@ -7,7 +7,7 @@ kind: Service
 metadata:
   name: istio-ingressgateway
 spec:
-  # k3s servicelb exposes port 80 on node IP for harbor.local / hello.local hosts.
+  # k3s servicelb exposes port 80 on node IP for harbor.myk8s.local / hello.myk8s.local / argocd.myk8s.local hosts.
   type: LoadBalancer
   selector:
     istio: ingressgateway

@@ -3,7 +3,7 @@ expose:
   tls:
     enabled: false
 
-externalURL: http://harbor.local
+externalURL: http://harbor.myk8s.local
 
 persistence:
   enabled: true
