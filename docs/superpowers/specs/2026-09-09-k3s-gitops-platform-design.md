@@ -36,7 +36,7 @@
 2. **入口层**：Istio 经 **Sail Operator** 安装控制面（首期固定此 Operator，不混用 istioctl 安装控制面）；业务 `Gateway` / `VirtualService` 由本仓 Kustomize 管理。
 3. **平台层**：由 Argo CD `platform-root` 管理——Istio Operator + 控制面 CR、Harbor、Argo Workflows、CloudNativePG Operator + Cluster CR、ClickHouse Operator + 实例 CR。
 4. **工作负载层**：由 Argo CD `workloads-root` 管理——示例应用 `hello` 及 CI Workflow 模板。
-5. **密钥层**：`secrets/templates`（Git）+ `secrets/local`（gitignore）+ `scripts/apply-secrets.sh`。
+5. **密钥层**：`secrets/templates`（Git）+ `secrets/overlays/<env>`（gitignore）+ `scripts/secrets/apply-secrets.sh`。
 
 ### 3.2 主链路
 
@@ -50,7 +50,7 @@
 
 ### 3.3 Bootstrap 顺序（一次性）
 
-1. `k3s/install.sh`（含 local-path → `~/data`）
+1. `scripts/k3s/install.sh`（含 local-path → `~/data`）
 2. 注入 secrets
 3. 安装 Argo CD（`bootstrap/`）
 4. 注册 `platform-root`、`workloads-root`
@@ -64,11 +64,6 @@
 myk8s/
 ├── README.md
 ├── .gitignore
-├── k3s/
-│   ├── config.yaml
-│   ├── install.sh
-│   └── local-path/
-│       └── configmap-patch.yaml
 ├── bootstrap/
 │   ├── argocd/
 │   └── root-apps/
@@ -115,12 +110,17 @@ myk8s/
 │           └── image-tag.yaml
 ├── secrets/
 │   ├── templates/
-│   └── local/                 # gitignore
+│   └── overlays/
+│       └── local/             # gitignore
 ├── scripts/
-│   ├── apply-secrets.sh
-│   ├── setup-hosts.sh
 │   ├── bootstrap.sh
-│   └── smoke-check.sh         # 可选
+│   ├── k3s/                   # install、config、local-path、registries
+│   ├── hosts/
+│   │   └── setup-hosts.sh
+│   ├── secrets/
+│   │   └── apply-secrets.sh
+│   └── smoke/
+│       └── smoke-check.sh
 ├── examples/
 │   └── hello-src/             # 可选：演示说明 / 外仓指针
 └── docs/
@@ -131,12 +131,12 @@ myk8s/
 
 | 路径 | 职责 |
 |------|------|
-| `k3s/` | 安装集群与存储路径 |
+| `scripts/k3s/` | 安装集群与存储路径 |
 | `bootstrap/` | 仅首次：安装 Argo CD，并 `kubectl apply` 双根 Application |
 | `argocd/` | Application 定义的**唯一真相源**；`bootstrap/root-apps` 与之保持同内容或改为直接 apply `argocd/roots/`（实现时二选一，禁止长期双份漂移） |
 | `platform/base` + `overlays` | 平台组件真相源 |
 | `workloads/*` | 自研应用真相源 |
-| `secrets/templates` vs `local` | 模板进 Git；真值本机注入 |
+| `secrets/templates` vs `overlays/<env>` | 模板进 Git；真值本机注入 |
 
 多环境扩展：新增 `platform/overlays/<env>`、`workloads/overlays/<env>` 及对应 Application，不改 base 契约。
 
@@ -190,8 +190,8 @@ myk8s/
 ### 6.3 密钥
 
 - Git：`secrets/templates/*.yaml`（结构说明 / 占位）。
-- 本机：`secrets/local/`（gitignore）。
-- `scripts/apply-secrets.sh` 渲染并 apply；`bootstrap.sh` 在注册根应用前执行。
+- 本机：`secrets/overlays/<env>/`（gitignore）。
+- `scripts/secrets/apply-secrets.sh [overlay]` 渲染并 apply；`bootstrap.sh` 传入 `local` 非交互执行。
 - 轮换：改本机文件 → 重跑脚本 → 按需重启依赖 Pod。
 
 ### 6.4 失败处理
@@ -212,7 +212,7 @@ myk8s/
 4. **E2E**：Workflow → Harbor 镜像 → image-tag 更新 → Argo CD sync → `hello.myk8s.local` 预期响应。
 5. **密钥**：`git status` 无 Secret 明文。
 
-交付：README / docs 中的 Smoke checklist；可选 `scripts/smoke-check.sh`。
+交付：README / docs 中的 Smoke checklist；可选 `scripts/smoke/smoke-check.sh`。
 
 ### 成功标准（首期 Done）
 

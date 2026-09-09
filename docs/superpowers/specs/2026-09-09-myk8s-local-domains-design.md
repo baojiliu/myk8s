@@ -46,15 +46,15 @@
 | Harbor | `externalURL: http://harbor.myk8s.local`；Gateway/VS hosts |
 | hello | Gateway/VS → `hello.myk8s.local`；镜像与 Workflow registry → `harbor.myk8s.local/...` |
 | Argo CD | 新增 Istio 路由清单（如 `platform/base/argocd-istio/`）→ `argocd.myk8s.local` → `argocd-server`；对应 Argo Application |
-| k3s | `k3s/registries.yaml` 中 mirror/host 改为 `harbor.myk8s.local` |
-| 脚本 / 文档 | `setup-hosts.sh`、`apply-secrets.sh`、`smoke-check.sh`、`bootstrap.sh`、`README.md` |
+| k3s | `scripts/k3s/registries.yaml` 中 mirror/host 改为 `harbor.myk8s.local` |
+| 脚本 / 文档 | `scripts/hosts/setup-hosts.sh`、`scripts/secrets/apply-secrets.sh`、`scripts/smoke/smoke-check.sh`、`bootstrap.sh`、`README.md` |
 
 ### 4.2 本机一次性操作（非 Git）
 
-1. 执行更新后的 `scripts/setup-hosts.sh`（加新三名、删旧三名）
+1. 执行更新后的 `scripts/hosts/setup-hosts.sh`（加新三名、删旧三名）
 2. 更新 Docker `insecure-registries` 为 `harbor.myk8s.local` 并 reload
 3. 更新节点 `registries.yaml` 后按需重启 k3s
-4. 重跑 `scripts/apply-secrets.sh`（pull secret 的 docker-server）
+4. 重跑 `scripts/secrets/apply-secrets.sh local`（pull secret 的 docker-server）
 5. 将 hello 镜像推送到新 registry 主机名（rebuild/push 或 retag），再 Argo sync
 
 **推荐顺序：** hosts → docker/k3s registry → Git sync（Harbor / Istio / hello / argocd-istio）→ secrets → 验证拉镜像 → smoke。
@@ -70,14 +70,14 @@
 1. `/etc/hosts` 含三新名、不含 `harbor.local` / `argocd.local` / `hello.local`
 2. `curl` 访问 `http://harbor.myk8s.local`、`http://hello.myk8s.local`、`http://argocd.myk8s.local` 可达（非连接失败）
 3. 节点可从 `harbor.myk8s.local` 拉镜像；hello Pod Ready
-4. `scripts/smoke-check.sh` 全 OK（检查项使用新域名）
+4. `scripts/smoke/smoke-check.sh` 全 OK（检查项使用新域名）
 5. 业务清单与 README 不再使用旧三主机名（历史 plan 文档可顺手更新）
 
 ### 5.2 失败处理
 
 | 现象 | 处理 |
 |------|------|
-| 域名不通 | 重跑 `setup-hosts.sh`；查 Istio Gateway/VS |
+| 域名不通 | 重跑 `scripts/hosts/setup-hosts.sh`；查 Istio Gateway/VS |
 | ImagePullBackOff | 查 docker/k3s insecure、pull secret、镜像是否在新 host |
 | Argo UI 异常 | 查 `argocd-istio` 路由与 `argocd-server` Service |
 

@@ -35,14 +35,16 @@ bash scripts/k3s/install.sh
 复制模板并填写真实值（详见 [secrets/README.md](secrets/README.md)）：
 
 ```bash
-cp secrets/templates/harbor-admin.env.example   secrets/local/harbor-admin.env
-cp secrets/templates/postgres.env.example       secrets/local/postgres.env
-cp secrets/templates/github-token.env.example   secrets/local/github-token.env
-cp secrets/templates/harbor-robot.env.example   secrets/local/harbor-robot.env
-# 编辑 secrets/local/*.env
+mkdir -p secrets/overlays/local
+cp secrets/templates/harbor-admin.env.example   secrets/overlays/local/harbor-admin.env
+cp secrets/templates/postgres.env.example       secrets/overlays/local/postgres.env
+cp secrets/templates/github-token.env.example   secrets/overlays/local/github-token.env
+cp secrets/templates/harbor-robot.env.example   secrets/overlays/local/harbor-robot.env
+# 编辑 secrets/overlays/local/*.env
+# registry.env 示例：HARBOR_REGISTRY=harbor.myk8s.local
 ```
 
-`secrets/local/` 已在 `.gitignore` 中，**切勿**将真实密钥提交到 Git。
+`secrets/overlays/*/` 已在 `.gitignore` 中，**切勿**将真实密钥提交到 Git。
 
 ### 3. Bootstrap 集群侧组件
 
@@ -60,7 +62,7 @@ Argo CD Application 指向本仓库 URL。将当前分支（如 `main` 或功能
 git push -u origin HEAD   # 或 push 到 main
 ```
 
-若仓库为**私有**，须在 `argocd` 命名空间配置 **repository 凭据**（例如 `argocd repo add` 或手工创建 repository Secret），凭据来自 `secrets/local`，**不要**写入 Git 清单。
+若仓库为**私有**，须在 `argocd` 命名空间配置 **repository 凭据**（例如 `argocd repo add` 或手工创建 repository Secret），凭据来自 `secrets/overlays/local`，**不要**写入 Git 清单。
 
 ### 5. 等待平台同步就绪
 
@@ -86,7 +88,7 @@ bash scripts/smoke/smoke-check.sh
 
 - **禁止**将 GitHub Personal Access Token 嵌入 `git remote` URL（例如 `https://TOKEN@github.com/...`）。清单内 `repoURL` 一律使用不含凭据的 HTTPS 地址。
 - 若 token 曾出现在 remote URL、shell 历史或日志中，请**立即轮换**并在 GitHub 撤销旧 token。
-- Workflow 与 Harbor 使用的 token/robot 账户通过 `scripts/secrets/apply-secrets.sh` 注入集群，仅存于本机 `secrets/local` 与 Kubernetes Secret。
+- Workflow 与 Harbor 使用的 token/robot 账户通过 `scripts/secrets/apply-secrets.sh` 注入集群，仅存于本机 `secrets/overlays/local` 与 Kubernetes Secret。
 
 ## 仓库结构（概要）
 
@@ -95,7 +97,7 @@ bootstrap/     # Argo CD 首次安装脚本
 argocd/        # Root / Platform / Workloads Application 定义
 platform/      # 平台组件 Kustomize 基线与 overlay
 workloads/     # 应用 Kustomize（如 hello）
-secrets/       # 密钥模板与本机 local（gitignore）
+secrets/       # 密钥模板与 overlays/<env>（gitignore）
 scripts/       # bootstrap；子目录 k3s/、hosts/、secrets/、smoke/
 examples/      # 演示用应用源码指针（构建上下文）
 ```
@@ -106,8 +108,8 @@ examples/      # 演示用应用源码指针（构建上下文）
 # Bootstrap（见上文）
 bash scripts/bootstrap.sh
 
-# 仅重新应用本机密钥到集群
-bash scripts/secrets/apply-secrets.sh
+# 仅重新应用本机密钥到集群（无参则交互选择 overlay）
+bash scripts/secrets/apply-secrets.sh local
 
 # 平台健康检查
 bash scripts/smoke/smoke-check.sh

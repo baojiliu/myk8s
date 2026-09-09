@@ -21,7 +21,7 @@ persistence:
     trivy:
       storageClass: CHANGE_ME_STORAGECLASS
 
-# Admin password: injected by scripts/apply-secrets.sh as secret harbor-admin / HARBOR_ADMIN_PASSWORD.
+# Admin password: injected by scripts/secrets/apply-secrets.sh as secret harbor-admin / HARBOR_ADMIN_PASSWORD.
 # Do not commit real passwords. Override only if the secret is missing before first sync.
 existingSecretAdminPassword: harbor-admin
 existingSecretAdminPasswordKey: HARBOR_ADMIN_PASSWORD
