@@ -1,3 +1,12 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
-resources: []
+resources:
+  - istio-operator.yaml
+  - istio-control-plane.yaml
+  - harbor.yaml
+  - harbor-istio.yaml
+  - argo-workflows.yaml
+  - cloudnative-pg-operator.yaml
+  - cloudnative-pg-cluster.yaml
+  - clickhouse-operator.yaml
+  - clickhouse-cluster.yaml
