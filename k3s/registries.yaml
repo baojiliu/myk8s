@@ -1,8 +1,8 @@
 mirrors:
-  harbor.local:
+  harbor.myk8s.local:
     endpoint:
-      - "http://harbor.local"
+      - "http://harbor.myk8s.local"
 configs:
-  "harbor.local":
+  "harbor.myk8s.local":
     tls:
       insecure_skip_verify: true
