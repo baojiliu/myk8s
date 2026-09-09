@@ -116,3 +116,13 @@ bash scripts/smoke-check.sh
 # Argo CD 本地访问
 kubectl -n argocd port-forward svc/argocd-server 8080:443
 ```
+
+## 镜像拉取（Harbor HTTP）
+
+k3s 安装会写入 `/etc/rancher/k3s/registries.yaml`，允许节点从 `http://harbor.local` 拉镜像。若集群已存在，请手动复制 `k3s/registries.yaml` 后 `systemctl restart k3s`。
+
+`hello` Deployment 使用 `imagePullSecrets: harbor-pull`（由 `apply-secrets.sh` 注入）。
+
+## Argo CD `targetRevision`
+
+清单中 `targetRevision: HEAD` 跟踪**默认分支 tip**。功能分支验证前需合并/推到默认分支，或临时把 Application 的 `targetRevision` 改为功能分支名。

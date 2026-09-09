@@ -1,0 +1,8 @@
+mirrors:
+  harbor.local:
+    endpoint:
+      - "http://harbor.local"
+configs:
+  "harbor.local":
+    tls:
+      insecure_skip_verify: true

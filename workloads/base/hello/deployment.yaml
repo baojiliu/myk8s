@@ -14,6 +14,8 @@ spec:
       labels:
         app: hello
     spec:
+      imagePullSecrets:
+        - name: harbor-pull
       containers:
         - name: hello
           image: harbor.local/library/hello:latest

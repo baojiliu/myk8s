@@ -15,6 +15,7 @@ fi
 
 mkdir -p /etc/rancher/k3s
 cp "$SCRIPT_DIR/config.yaml" /etc/rancher/k3s/config.yaml
+cp "$SCRIPT_DIR/registries.yaml" /etc/rancher/k3s/registries.yaml
 
 echo "[INFO] install k3s"
 curl -sfL https://get.k3s.io | sh -
