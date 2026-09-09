@@ -6,6 +6,7 @@ resources:
   - istio-ingress.yaml
   - harbor.yaml
   - harbor-istio.yaml
+  - argocd-istio.yaml
   - argo-workflows.yaml
   - cloudnative-pg-operator.yaml
   - cloudnative-pg-cluster.yaml

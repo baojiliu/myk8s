@@ -1,0 +1,32 @@
+apiVersion: networking.istio.io/v1
+kind: Gateway
+metadata:
+  name: argocd-gw
+  namespace: argocd
+spec:
+  selector:
+    istio: ingressgateway
+  servers:
+    - port:
+        number: 80
+        name: http
+        protocol: HTTP
+      hosts:
+        - argocd.myk8s.local
+---
+apiVersion: networking.istio.io/v1
+kind: VirtualService
+metadata:
+  name: argocd-vs
+  namespace: argocd
+spec:
+  hosts:
+    - argocd.myk8s.local
+  gateways:
+    - argocd-gw
+  http:
+    - route:
+        - destination:
+            host: argocd-server
+            port:
+              number: 80
