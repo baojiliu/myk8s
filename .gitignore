@@ -1,0 +1,15 @@
+.claude
+.cursor
+.mcp.json
+AGENTS.md
+CLAUDE.md
+
+# git worktrees
+.worktrees/
+worktrees/
+
+# 本机密钥（永不提交）
+secrets/local/
+**/*.pem
+**/*.key
+!**/.gitkeep

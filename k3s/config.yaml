@@ -1,0 +1,7 @@
+# /etc/rancher/k3s/config.yaml
+#tls-san:
+#  - k8s.baojiliu.xyz
+#  - 14.103.234.196
+disable:
+  - traefik
+  - metrics-server
