@@ -1,0 +1,99 @@
+# Phase 1: build+push only. After the workflow finishes, manually set
+# workloads/overlays/local/kustomization.yaml images.newTag to the workflow UID tag.
+apiVersion: argoproj.io/v1alpha1
+kind: WorkflowTemplate
+metadata:
+  name: build-hello
+  namespace: argo
+spec:
+  entrypoint: build-push
+  serviceAccountName: operate-workflow-sa
+  arguments:
+    parameters:
+      - name: git-repo
+        value: https://github.com/baojiliu/myk8s.git
+      - name: git-revision
+        value: HEAD
+      - name: image
+        value: harbor.local/library/hello
+  templates:
+    - name: build-push
+      steps:
+        - - name: clone
+            template: git-clone
+        - - name: build
+            template: kaniko-build
+            arguments:
+              artifacts:
+                - name: src
+                  from: "{{steps.clone.outputs.artifacts.src}}"
+
+    - name: git-clone
+      container:
+        image: alpine/git:2.45.2
+        command: [sh, -c]
+        args:
+          - |
+            set -euo pipefail
+            clone_url="{{workflow.parameters.git-repo}}"
+            if [ -n "${GITHUB_TOKEN:-}" ]; then
+              clone_url="https://${GITHUB_TOKEN}@github.com/baojiliu/myk8s.git"
+            fi
+            revision="{{workflow.parameters.git-revision}}"
+            if [ "${revision}" = "HEAD" ]; then
+              git clone --depth 1 "${clone_url}" /src/repo
+            else
+              git clone --depth 1 --branch "${revision}" "${clone_url}" /src/repo
+            fi
+            test -f /src/repo/examples/hello-src/Dockerfile
+            cp -a /src/repo/examples/hello-src/. /src/hello/
+        env:
+          - name: GITHUB_TOKEN
+            valueFrom:
+              secretKeyRef:
+                name: github-token
+                key: token
+                optional: true
+        volumeMounts:
+          - name: workspace
+            mountPath: /src
+      volumes:
+        - name: workspace
+          emptyDir: {}
+      outputs:
+        artifacts:
+          - name: src
+            path: /src/hello
+
+    - name: kaniko-build
+      inputs:
+        artifacts:
+          - name: src
+            path: /workspace
+      container:
+        image: gcr.io/kaniko-project/executor:v1.23.2
+        command: [sh, -c]
+        args:
+          - |
+            set -euo pipefail
+            mkdir -p /kaniko/.docker
+            auth=$(printf '%s:%s' "$HARBOR_USERNAME" "$HARBOR_PASSWORD" | base64 | tr -d '\n')
+            printf '{"auths":{"harbor.local":{"auth":"%s"}}}' "$auth" > /kaniko/.docker/config.json
+            /kaniko/executor \
+              --dockerfile=/workspace/Dockerfile \
+              --context=/workspace \
+              --destination="{{workflow.parameters.image}}:{{workflow.uid}}" \
+              --insecure \
+              --skip-tls-verify \
+              --insecure-registry=harbor.local
+        env:
+          - name: HARBOR_USERNAME
+            valueFrom:
+              secretKeyRef:
+                name: harbor-robot
+                key: username
+          - name: HARBOR_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: harbor-robot
+                key: password
