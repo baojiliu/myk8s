@@ -1,4 +1,5 @@
 # /etc/rancher/k3s/config.yaml
+# Storage paths are configured post-install via local-path/apply-configmap.sh
 #tls-san:
 #  - k8s.baojiliu.xyz
 #  - 14.103.234.196

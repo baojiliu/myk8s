@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# Uninstalls existing k3s (if present) before reinstalling.
 set -e
 
 [[ $EUID -eq 0 ]] || exec sudo bash "$0" "$@"
@@ -21,5 +22,8 @@ curl -sfL https://get.k3s.io | sh -
 mkdir -p "$USER_HOME/.kube"
 cp /etc/rancher/k3s/k3s.yaml "$USER_HOME/.kube/config"
 chown "$USER_NAME:$USER_NAME" "$USER_HOME/.kube/config"
+
+echo "[INFO] configure local-path -> ${USER_HOME}/data"
+bash "$SCRIPT_DIR/local-path/apply-configmap.sh"
 
 echo "[INFO] done"
