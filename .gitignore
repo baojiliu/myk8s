@@ -9,7 +9,8 @@ CLAUDE.md
 worktrees/
 
 # 本机密钥（永不提交）
-secrets/local/
+secrets/local/*
+!secrets/local/.gitkeep
 **/*.pem
 **/*.key
 !**/.gitkeep
