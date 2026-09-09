@@ -3,7 +3,7 @@ kind: Kustomization
 resources:
   - ../../base/hello
 images:
-  - name: harbor.local/library/hello
+  - name: harbor.myk8s.local/library/hello
     newTag: latest
 patches:
   - target:

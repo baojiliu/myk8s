@@ -15,7 +15,7 @@ spec:
       - name: git-revision
         value: HEAD
       - name: image
-        value: harbor.local/library/hello
+        value: harbor.myk8s.local/library/hello
   templates:
     - name: build-push
       steps:
@@ -78,14 +78,14 @@ spec:
             set -euo pipefail
             mkdir -p /kaniko/.docker
             auth=$(printf '%s:%s' "$HARBOR_USERNAME" "$HARBOR_PASSWORD" | base64 | tr -d '\n')
-            printf '{"auths":{"harbor.local":{"auth":"%s"}}}' "$auth" > /kaniko/.docker/config.json
+            printf '{"auths":{"harbor.myk8s.local":{"auth":"%s"}}}' "$auth" > /kaniko/.docker/config.json
             /kaniko/executor \
               --dockerfile=/workspace/Dockerfile \
               --context=/workspace \
               --destination="{{workflow.parameters.image}}:{{workflow.uid}}" \
               --insecure \
               --skip-tls-verify \
-              --insecure-registry=harbor.local
+              --insecure-registry=harbor.myk8s.local
         env:
           - name: HARBOR_USERNAME
             valueFrom:

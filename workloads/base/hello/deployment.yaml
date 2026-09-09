@@ -18,7 +18,7 @@ spec:
         - name: harbor-pull
       containers:
         - name: hello
-          image: harbor.local/library/hello:latest
+          image: harbor.myk8s.local/library/hello:latest
           ports:
             - containerPort: 80
               name: http

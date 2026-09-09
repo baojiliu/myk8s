@@ -11,7 +11,7 @@ spec:
         name: http
         protocol: HTTP
       hosts:
-        - hello.local
+        - hello.myk8s.local
 ---
 apiVersion: networking.istio.io/v1
 kind: VirtualService
@@ -19,7 +19,7 @@ metadata:
   name: hello-vs
 spec:
   hosts:
-    - hello.local
+    - hello.myk8s.local
   gateways:
     - hello-gw
   http:
