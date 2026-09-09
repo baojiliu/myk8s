@@ -17,7 +17,7 @@ spec:
     volumeClaimTemplates:
       - name: data
         spec:
-          storageClassName: local-path
+          storageClassName: CHANGE_ME_STORAGECLASS
           accessModes:
             - ReadWriteOnce
           resources:

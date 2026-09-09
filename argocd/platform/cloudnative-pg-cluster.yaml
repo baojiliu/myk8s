@@ -10,7 +10,7 @@ spec:
   source:
     repoURL: https://github.com/baojiliu/myk8s.git
     targetRevision: HEAD
-    path: platform/base/cloudnative-pg-cluster
+    path: platform/overlays/local/cloudnative-pg-cluster
   destination:
     server: https://kubernetes.default.svc
     namespace: postgres

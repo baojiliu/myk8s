@@ -10,7 +10,7 @@ spec:
   source:
     repoURL: https://github.com/baojiliu/myk8s.git
     targetRevision: HEAD
-    path: platform/base/clickhouse-cluster
+    path: platform/overlays/local/clickhouse-cluster
   destination:
     server: https://kubernetes.default.svc
     namespace: clickhouse

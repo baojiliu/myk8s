@@ -10,7 +10,7 @@ spec:
   source:
     repoURL: https://github.com/baojiliu/myk8s.git
     targetRevision: HEAD
-    path: platform/base/istio-ingress
+    path: platform/overlays/local/istio-ingress
   destination:
     server: https://kubernetes.default.svc
     namespace: istio-system
