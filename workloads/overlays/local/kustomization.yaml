@@ -3,7 +3,8 @@ kind: Kustomization
 resources:
   - ../../base/hello
 images:
-  - name: harbor.myk8s.local/library/hello
+  - name: CHANGE_ME_REGISTRY/library/hello
+    newName: harbor.myk8s.local/library/hello
     newTag: latest
 patches:
   - target:
@@ -27,6 +28,9 @@ patches:
       - op: add
         path: /metadata/namespace
         value: apps
+      - op: replace
+        path: /spec/servers/0/hosts/0
+        value: hello.myk8s.local
   - target:
       kind: VirtualService
       name: hello-vs
@@ -34,3 +38,27 @@ patches:
       - op: add
         path: /metadata/namespace
         value: apps
+      - op: replace
+        path: /spec/hosts/0
+        value: hello.myk8s.local
+  - target:
+      kind: WorkflowTemplate
+      name: build-hello
+    patch: |-
+      - op: replace
+        path: /spec/arguments/parameters/2/value
+        value: harbor.myk8s.local/library/hello
+      - op: replace
+        path: /spec/templates/2/container/args/0
+        value: |
+          set -euo pipefail
+          mkdir -p /kaniko/.docker
+          auth=$(printf '%s:%s' "$HARBOR_USERNAME" "$HARBOR_PASSWORD" | base64 | tr -d '\n')
+          printf '{"auths":{"harbor.myk8s.local":{"auth":"%s"}}}' "$auth" > /kaniko/.docker/config.json
+          /kaniko/executor \
+            --dockerfile=/workspace/Dockerfile \
+            --context=/workspace \
+            --destination="{{workflow.parameters.image}}:{{workflow.uid}}" \
+            --insecure \
+            --skip-tls-verify \
+            --insecure-registry=harbor.myk8s.local
