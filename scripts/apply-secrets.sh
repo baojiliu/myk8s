@@ -41,6 +41,6 @@ kubectl -n argo create secret generic harbor-robot \
   --dry-run=client -o yaml | kubectl apply -f -
 
 
-kubectl -n apps create secret docker-registry harbor-pull   --docker-server=harbor.local   --docker-username="$HARBOR_ROBOT_NAME"   --docker-password="$HARBOR_ROBOT_PASSWORD"   --dry-run=client -o yaml | kubectl apply -f -
+kubectl -n apps create secret docker-registry harbor-pull   --docker-server=harbor.myk8s.local   --docker-username="$HARBOR_ROBOT_NAME"   --docker-password="$HARBOR_ROBOT_PASSWORD"   --dry-run=client -o yaml | kubectl apply -f -
 
 echo "[INFO] secrets applied"
