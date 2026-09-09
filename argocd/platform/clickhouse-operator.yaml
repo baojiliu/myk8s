@@ -13,6 +13,11 @@ spec:
     targetRevision: 0.27.3
     helm:
       releaseName: clickhouse-operator
+      values: |
+        # Empty watchNamespaces only watches the operator's own namespace.
+        # CHI lives in `clickhouse`, so watch all namespaces.
+        watchNamespaces:
+          - ".*"
   destination:
     server: https://kubernetes.default.svc
     namespace: clickhouse-operator
