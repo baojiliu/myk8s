@@ -16,7 +16,7 @@
 - **kubectl** 可用（安装脚本会写入 `~/.kube/config`）
 - **磁盘**：`local-path-provisioner` 数据目录为 `~/data`，请确保该路径所在分区有足够空间
 - **网络**：可拉取 k3s、Helm chart、容器镜像；可访问 GitHub（清单与应用源码）
-- **/etc/hosts**：`scripts/setup-hosts.sh` 会写入 `harbor.local`、`argocd.local`、`hello.local`（指向 `127.0.0.1`）
+- **/etc/hosts**：`scripts/setup-hosts.sh` 会写入 `harbor.myk8s.local`、`argocd.myk8s.local`、`hello.myk8s.local`（指向 `127.0.0.1`）
 
 ## 快速开始
 
@@ -64,7 +64,7 @@ git push -u origin HEAD   # 或 push 到 main
 
 ### 5. 等待平台同步就绪
 
-在 Argo CD UI（`https://argocd.local`，或 `kubectl -n argocd port-forward svc/argocd-server 8080:443`）确认 `platform-root` 下各 Application 为 **Synced / Healthy**（Harbor、Istio、Workflows、PostgreSQL、ClickHouse 等）。
+在 Argo CD UI（`https://argocd.myk8s.local`，或 `kubectl -n argocd port-forward svc/argocd-server 8080:443`）确认 `platform-root` 下各 Application 为 **Synced / Healthy**（Harbor、Istio、Workflows、PostgreSQL、ClickHouse 等）。
 
 首次同步可能需要数分钟（拉镜像、Operator 就绪、CR 生效）。
 
@@ -74,7 +74,7 @@ git push -u origin HEAD   # 或 push 到 main
 bash scripts/smoke-check.sh
 ```
 
-脚本检查：节点 Ready、无 Traefik、Argo CD / Harbor / Workflows / PostgreSQL / ClickHouse、`harbor-admin` Secret、Istio ingress、`http://hello.local` 可访问。全部输出 `OK` 即通过；任一项 `FAIL` 请对照输出排查对应组件。
+脚本检查：节点 Ready、无 Traefik、Argo CD / Harbor / Workflows / PostgreSQL / ClickHouse、`harbor-admin` Secret、Istio ingress、`http://hello.myk8s.local` 可访问。全部输出 `OK` 即通过；任一项 `FAIL` 请对照输出排查对应组件。
 
 ## 示例应用 hello 与 CI
 
@@ -119,7 +119,17 @@ kubectl -n argocd port-forward svc/argocd-server 8080:443
 
 ## 镜像拉取（Harbor HTTP）
 
-k3s 安装会写入 `/etc/rancher/k3s/registries.yaml`，允许节点从 `http://harbor.local` 拉镜像。若集群已存在，请手动复制 `k3s/registries.yaml` 后 `systemctl restart k3s`。
+本机向 Harbor **推送**镜像时，需在 Docker `daemon.json` 中配置 insecure registry：
+
+```json
+{
+  "insecure-registries": ["harbor.myk8s.local"]
+}
+```
+
+修改后执行 `sudo systemctl reload docker`（或 restart）。
+
+k3s 安装会写入 `/etc/rancher/k3s/registries.yaml`，允许节点从 `http://harbor.myk8s.local` 拉镜像。若集群已存在，请手动复制 `k3s/registries.yaml` 后 `systemctl restart k3s`。
 
 `hello` Deployment 使用 `imagePullSecrets: harbor-pull`（由 `apply-secrets.sh` 注入）。
 

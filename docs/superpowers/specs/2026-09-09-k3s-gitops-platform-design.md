@@ -14,7 +14,7 @@
 - 三方组件：Harbor、Istio（Operator）、PostgreSQL（CloudNativePG Operator）、ClickHouse（Operator）
 - 清单管理：以 Kustomize 为主；按组件混用 Helm / Operator
 - 环境：目录预留多环境；首期只落地 `local`
-- 入口：Istio；本机 hosts 使用 `*.local`（如 `harbor.local`、`argocd.local`、`hello.local`）
+- 入口：Istio；本机 hosts 使用 `*.myk8s.local`（如 `harbor.myk8s.local`、`argocd.myk8s.local`、`hello.myk8s.local`）。域名约定见 [本机域名设计](2026-09-09-myk8s-local-domains-design.md)。
 - 密钥：Git 仅模板；真实值本机注入（不进 Git）
 
 本需求不涉及数据库 schema 变更。  
@@ -43,9 +43,9 @@
 ```text
 开发者 push → GitHub（应用源码仓）
   → Argo Events / 手动 Workflow
-  → Argo Workflows：checkout → build → push harbor.local/<project>/...
+  → Argo Workflows：checkout → build → push harbor.myk8s.local/<project>/...
   → 更新本仓 workloads overlay 中的镜像 tag
-  → Argo CD sync → Pod 从 Harbor 拉镜像 → Istio 暴露 *.local
+  → Argo CD sync → Pod 从 Harbor 拉镜像 → Istio 暴露 *.myk8s.local
 ```
 
 ### 3.3 Bootstrap 顺序（一次性）
@@ -157,7 +157,7 @@ myk8s/
 
 - StorageClass：k3s `local-path`；根目录 `~/data`。
 - PVC 命名带组件前缀（如 `harbor-registry`）。
-- 镜像前缀：`harbor.local/...`；local overlay 统一拉取地址。
+- 镜像前缀：`harbor.myk8s.local/...`；local overlay 统一拉取地址。
 - 首期允许 Harbor HTTP/insecure，并在文档与节点/containerd 配置中写明。
 
 ### 5.2 权限边界
@@ -183,7 +183,7 @@ myk8s/
 ### 6.2 CI（Argo Workflows）——hello 样板
 
 1. 触发：GitHub webhook（Argo Events）或手动 Workflow；首期至少支持手动。
-2. 步骤：clone 应用仓 → build → push `harbor.local/.../hello:<git-sha>` → 更新本仓 `workloads/overlays/local/image-tag.yaml`。
+2. 步骤：clone 应用仓 → build → push `harbor.myk8s.local/.../hello:<git-sha>` → 更新本仓 `workloads/overlays/local/image-tag.yaml`。
 3. Argo CD 侦测本仓变更后 sync `hello`。
 4. Workflow 通过 ServiceAccount 引用本机注入的 `github-token`、`harbor-robot`；清单中无明文 token。
 
@@ -209,7 +209,7 @@ myk8s/
 1. **集群基线**：节点 Ready；PV 落在 `~/data`；无 Traefik。
 2. **平台就绪**：Istio 控制面、Harbor、Argo CD、Workflows、CNPG Cluster、ClickHouse 均可探活。
 3. **GitOps**：双根 Healthy+Synced；改清单可反映到集群。
-4. **E2E**：Workflow → Harbor 镜像 → image-tag 更新 → Argo CD sync → `hello.local` 预期响应。
+4. **E2E**：Workflow → Harbor 镜像 → image-tag 更新 → Argo CD sync → `hello.myk8s.local` 预期响应。
 5. **密钥**：`git status` 无 Secret 明文。
 
 交付：README / docs 中的 Smoke checklist；可选 `scripts/smoke-check.sh`。
@@ -232,7 +232,7 @@ myk8s/
 | 镜像仓库 | 自建 Harbor |
 | GitOps 根 | platform 与 workloads 双根（C） |
 | Helm 策略 | 按组件混用（D）；有状态 DB/Istio 用 Operator |
-| 域名 | `*.local` + hosts（A） |
+| 域名 | `*.myk8s.local` + hosts（A）；详见 [本机域名设计](2026-09-09-myk8s-local-domains-design.md) |
 | 密钥 | 模板进 Git，真值本机注入（B） |
 | 示例应用 | 需要 hello 验证闭环（A） |
 | 目录方案 | platform + workloads + bootstrap（A） |
