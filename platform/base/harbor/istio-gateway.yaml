@@ -12,7 +12,7 @@ spec:
         name: http
         protocol: HTTP
       hosts:
-        - harbor.myk8s.local
+        - CHANGE_ME_HOST
 ---
 apiVersion: networking.istio.io/v1
 kind: VirtualService
@@ -21,7 +21,7 @@ metadata:
   namespace: harbor
 spec:
   hosts:
-    - harbor.myk8s.local
+    - CHANGE_ME_HOST
   gateways:
     - harbor-gw
   http:

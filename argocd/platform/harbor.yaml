@@ -13,7 +13,7 @@ spec:
       targetRevision: 1.16.4
       helm:
         valueFiles:
-          - $values/platform/base/harbor/values-local.yaml
+          - $values/platform/overlays/local/harbor/values.yaml
     - repoURL: https://github.com/baojiliu/myk8s.git
       targetRevision: HEAD
       ref: values
