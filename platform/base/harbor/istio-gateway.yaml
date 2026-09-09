@@ -1,0 +1,33 @@
+apiVersion: networking.istio.io/v1
+kind: Gateway
+metadata:
+  name: harbor-gw
+  namespace: harbor
+spec:
+  selector:
+    istio: ingressgateway
+  servers:
+    - port:
+        number: 80
+        name: http
+        protocol: HTTP
+      hosts:
+        - harbor.local
+---
+apiVersion: networking.istio.io/v1
+kind: VirtualService
+metadata:
+  name: harbor-vs
+  namespace: harbor
+spec:
+  hosts:
+    - harbor.local
+  gateways:
+    - harbor-gw
+  http:
+    - route:
+        - destination:
+            # clusterIP expose: chart creates nginx front door svc named "harbor" (release name).
+            host: harbor
+            port:
+              number: 80
