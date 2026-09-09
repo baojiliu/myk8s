@@ -3,6 +3,7 @@ kind: Kustomization
 resources:
   - istio-operator.yaml
   - istio-control-plane.yaml
+  - istio-ingress.yaml
   - harbor.yaml
   - harbor-istio.yaml
   - argo-workflows.yaml
